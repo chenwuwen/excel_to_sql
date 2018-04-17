@@ -3,7 +3,7 @@ import os
 
 base_dir = 'E:\\'
 
-titles = ['地址区县', '街路巷名称', '门楼牌号地址', '单元名称', '户名称', '层数']
+titles = ['地址区县', '街路巷名称', '门楼牌号地址', '单元名称', '户名称', '层数', '坐标x', '坐标y']
 src_filename = "dzys.xlsx"
 filename = "data.txt"
 script = "script.txt"
@@ -60,7 +60,7 @@ def read_file_tolist():
         for line in data.readlines():
             print(line)
             smal_list = line.split("\t")
-            sort_list = list(range(7))
+            sort_list = list(range(9))
             # 户名称
             sort_list[6] = smal_list[4].strip()
             # 层数
@@ -70,6 +70,10 @@ def read_file_tolist():
             # 楼名称
             sort_list[3] = smal_list[2].strip()
             sort_list[0] = smal_list[0].strip()
+            # 经度
+            sort_list[7] = smal_list[6].strip()
+            # 纬度
+            sort_list[8] = smal_list[7].strip()
             # 分割 镇/街道 路 小区
             z_l_x = smal_list[1].strip()
             x, y = split_str(z_l_x)

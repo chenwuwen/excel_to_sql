@@ -14,27 +14,30 @@ def open_file():
             row_list = line.split("\t")
             # print(row_list)
             print("已执行%d行" % (i))
+            # 获取当前行经纬度 (列表从右侧第一/二个)
+            lng = row_list[-2]
+            lat = row_list[-1]
             for index, addressName in enumerate(row_list, 1):
                 # 每插完一行数据将flag置为true
                 flag = index == 1
-                # rank1, rank2, rank3, rank4, rank5, rank6 = 0
+
                 if index == 1:
-                    rank1 = exec_sql(addressName.strip(), 0, index, flag)
+                    supId1, supName1 = exec_sql(addressName.strip(), "", lng, lat, 0, index, flag)
                 elif index == 2:
-                    rank2 = exec_sql(addressName.strip(), int(rank1), index, flag)
+                    supId2, supName2 = exec_sql(addressName.strip(), supName1, lng, lat, int(supId1), index, flag)
                 elif index == 3:
-                    rank3 = exec_sql(addressName.strip(), int(rank2), index, flag)
+                    supId3, supName3 = exec_sql(addressName.strip(), supName2, lng, lat, int(supId2), index, flag)
                 elif index == 4:
-                    rank4 = exec_sql(addressName.strip(), int(rank3), index, flag)
+                    supId4, supName4 = exec_sql(addressName.strip(), supName3, lng, lat, int(supId3), index, flag)
                 elif index == 5:
-                    rank5 = exec_sql(addressName.strip(), int(rank4), index, flag)
+                    supId5, supName5 = exec_sql(addressName.strip(), supName4, lng, lat, int(supId4), index, flag)
                 elif index == 6:
-                    rank6 = exec_sql(addressName.strip(), int(rank5), index, flag)
+                    supId6, supName6 = exec_sql(addressName.strip(), supName5, lng, lat, int(supId5), index, flag)
                 else:
-                    exec_sql(addressName.strip(), int(rank6), index, flag)
+                    exec_sql(addressName.strip(), supName6, lng, lat, int(supId6), index, flag)
 
 
-def exec_sql(addressName, supId, rank, flag):
+def exec_sql(addressName, supName, lng, lat, supId, index, flag):
     # print("******************************")
     # print("名称：", addressName)
     # print("supId：", supId)
@@ -42,9 +45,16 @@ def exec_sql(addressName, supId, rank, flag):
     value = {
         'addressName': addressName,
         'supId': supId,
-        'rank': rank,
-        'state': 1
+        'rank': index,
+        'state': 1,
+        'supName': supName,
+        'lng': lng,
+        'lat': lat
     }
+    if index != 4:
+        value['lng'] = None
+        value['lat'] = None
+
     query_sql_txt = '''
         select id from sc_address where addressName=%(addressName)s and rank=%(rank)s  and supId=%(supId)s
     
@@ -53,8 +63,8 @@ def exec_sql(addressName, supId, rank, flag):
     insert
     into
     sc_address
-    (addressName, supId, rank,state)
-    VALUES(%(addressName)s, %(supId)s, %(rank)s, %(state)s)
+    (addressName, supId, rank,state,supName,lng,lat)
+    VALUES(%(addressName)s, %(supId)s, %(rank)s, %(state)s,%(supName)s,%(lng)s,%(lat)s)
     '''
     # 如果flag为true,说明程序开始读取新一行的第一个数据,需要先判断这个数据在数据库是否存在
     if flag:
@@ -67,7 +77,7 @@ def exec_sql(addressName, supId, rank, flag):
         a = cursor.fetchone()
         # 如果之前有数据那么,这条数据就不必插入,并将主键返回
         if a:
-            return a[0]
+            return a[0], addressName
         else:
             insert_sql_txt_rank_1 = '''
             insert
@@ -79,18 +89,18 @@ def exec_sql(addressName, supId, rank, flag):
             cursor.execute(insert_sql_txt_rank_1, value)
             conn.commit()
             # 返回主键
-            return cursor.lastrowid
+            return cursor.lastrowid, addressName
     # 如果不是每一行的第一个数据,也需要先查找再插入
     else:
         cursor.execute(query_sql_txt, value)
         a = cursor.fetchone()
         if a:
-            return a[0]
+            return a[0], supName + addressName
         else:
             cursor.execute(insert_sql_txt, value)
             conn.commit()
             # print("返回的ID是：", cursor.lastrowid)
-            return cursor.lastrowid
+            return cursor.lastrowid, supName + addressName
 
 
 if __name__ == '__main__':
