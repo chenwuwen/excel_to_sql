@@ -15,8 +15,8 @@ def open_file():
             # print(row_list)
             print("已执行%d行" % (i))
             # 获取当前行经纬度 (列表从右侧数第一/二个)
-            lng = row_list[-2]
-            lat = row_list[-1]
+            lng = row_list[-2].strip()
+            lat = row_list[-1].strip()
 
             # 然后当前列表的最后两个元素(因为经纬度不能插入到name字段) pop 会做两件事: 删除 list 的最后一个元素, 然后返回删除元素的值
             row_list.pop()
